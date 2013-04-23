@@ -72,7 +72,16 @@ extern NSString * kAERecorderErrorKey;
 - (void)finishRecording;
 
 /*!
+ * Pause the recording
+ */
+- (void)pauseRecording;
+
+
+/*!
  * The path
  */
 @property (nonatomic, retain, readonly) NSString *path;
+@property (nonatomic, readonly) BOOL recording;
+@property (nonatomic, readonly) BOOL startedRecording;
+
 @end

@@ -34,6 +34,8 @@ NSString * kAERecorderErrorKey = @"error";
 
 @interface AERecorder () {
     BOOL _recording;
+    BOOL _paused;
+    BOOL _startedRecording;
     AudioBufferList *_buffer;
 }
 @property (nonatomic, retain) AEMixerBuffer *mixer;
@@ -42,6 +44,9 @@ NSString * kAERecorderErrorKey = @"error";
 
 @implementation AERecorder
 @synthesize mixer = _mixer, writer = _writer;
+@synthesize recording = _recording;
+@synthesize startedRecording = _startedRecording;
+
 @dynamic path;
 
 + (BOOL)AACEncodingAvailable {
@@ -78,6 +83,15 @@ NSString * kAERecorderErrorKey = @"error";
     [_writer finishWriting];
 }
 
+- (void)pauseRecording
+{
+    if (_recording)
+    {
+        _recording = NO;
+        _paused = YES;
+    }
+}
+
 -(NSString *)path {
     return _writer.path;
 }
@@ -102,7 +116,8 @@ static void audioCallback(id                        receiver,
                           AudioBufferList          *audio) {
     AERecorder *THIS = receiver;
     if ( !THIS->_recording ) return;
-    
+    if ( THIS->_paused ) return;
+
     AEMixerBufferEnqueue(THIS->_mixer, source, audio, frames, time);
     
     // Let the mixer buffer provide the audio buffer
