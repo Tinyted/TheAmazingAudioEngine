@@ -35,7 +35,6 @@ NSString * kAERecorderErrorKey = @"error";
 @interface AERecorder () {
     BOOL _recording;
     BOOL _paused;
-    BOOL _startedRecording;
     AudioBufferList *_buffer;
 }
 @property (nonatomic, retain) AEMixerBuffer *mixer;
@@ -45,7 +44,7 @@ NSString * kAERecorderErrorKey = @"error";
 @implementation AERecorder
 @synthesize mixer = _mixer, writer = _writer;
 @synthesize recording = _recording;
-@synthesize startedRecording = _startedRecording;
+@synthesize paused = _paused;
 
 @dynamic path;
 
@@ -75,12 +74,22 @@ NSString * kAERecorderErrorKey = @"error";
 - (BOOL)beginRecordingToFileAtPath:(NSString*)path fileType:(AudioFileTypeID)fileType error:(NSError**)error {
     BOOL result = [_writer beginWritingToFileAtPath:path fileType:fileType error:error];
     if ( result ) _recording = YES;
+    _paused = NO;
     return result;
 }
 
 - (void)finishRecording {
     _recording = NO;
     [_writer finishWriting];
+}
+
+- (void)resumeRecording
+{
+    if (!_recording && _paused)
+    {
+        _recording = YES;
+        _paused = NO;
+    }
 }
 
 - (void)pauseRecording

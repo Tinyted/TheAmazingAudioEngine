@@ -1598,8 +1598,11 @@ static BOOL AEAudioControllerHasPendingMainThreadMessages(AEAudioController *THI
         _inputLevelMonitorData.monitoringEnabled = YES;
     }
     
-    if ( averagePower ) *averagePower = 10.0 * log10((double)_inputLevelMonitorData.average);
-    if ( peakLevel ) *peakLevel = 10.0 * log10((double)_inputLevelMonitorData.peak);
+    if ( averagePower ) *averagePower = _inputLevelMonitorData.average;
+    if ( peakLevel ) *peakLevel = _inputLevelMonitorData.peak;
+
+//    if ( averagePower ) *averagePower = 10.0 * log10((double)_inputLevelMonitorData.average);
+//    if ( peakLevel ) *peakLevel = 10.0 * log10((double)_inputLevelMonitorData.peak);
     
     _inputLevelMonitorData.reset = YES;
 }
