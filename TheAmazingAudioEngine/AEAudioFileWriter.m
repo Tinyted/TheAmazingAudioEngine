@@ -26,7 +26,7 @@
 #import "AEAudioFileWriter.h"
 #import "TheAmazingAudioEngine.h"
 
-NSString * AEAudioFileWriterErrorDomain = @"com.theamazingaudioengine.AEAudioFileWriterErrorDomain";
+NSString * const AEAudioFileWriterErrorDomain = @"com.theamazingaudioengine.AEAudioFileWriterErrorDomain";
 
 #define checkResult(result,operation) (_checkResult((result),(operation),strrchr(__FILE__, '/')+1,__LINE__))
 static inline BOOL _checkResult(OSStatus result, const char *operation, const char* file, int line) {
@@ -169,6 +169,7 @@ static inline BOOL _checkResult(OSStatus result, const char *operation, const ch
         AudioStreamBasicDescription audioDescription = _audioDescription;
         audioDescription.mFormatFlags = (fileType == kAudioFileAIFFType ? kLinearPCMFormatFlagIsBigEndian : 0) | kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked;
         audioDescription.mFormatID = kAudioFormatLinearPCM;
+        audioDescription.mBitsPerChannel = 16;
         audioDescription.mBytesPerPacket =
             audioDescription.mBytesPerFrame = audioDescription.mChannelsPerFrame * (audioDescription.mBitsPerChannel/8);
         audioDescription.mFramesPerPacket = 1;

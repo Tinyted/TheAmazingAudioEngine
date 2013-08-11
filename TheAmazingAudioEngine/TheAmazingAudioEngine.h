@@ -25,6 +25,10 @@
 //  3. This notice may not be removed or altered from any source distribution.
 //
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #import "AEAudioController.h"
 #import "AEAudioController+Audiobus.h"
 #import "AEAudioFileLoaderOperation.h"
@@ -85,7 +89,13 @@
  Here's the recommended way to do this:
  
  1. Clone The Amazing Audio Engine's [git repository](https://github.com/TheAmazingAudioEngine/TheAmazingAudioEngine)
-    (or just download it) into a folder within your project, such as `Library/The Amazing Audio Engine`.
+    (or just download it) into a folder within your project, such as `Library/The Amazing Audio Engine`.  
+      
+    *Note: If you are cloning the repository, you may wish to grab only the latest version, with the following command:*
+ 
+    @code
+    git clone --depth=1 https://github.com/TheAmazingAudioEngine/TheAmazingAudioEngine.git
+    @endcode
  2. Drag `TheAmazingAudioEngine.xcodeproj` from that folder into your project's navigation tree in Xcode. It'll
     be added as a sub-project.
  3. In the "Build Phases" tab of your main target, open up the "Target Dependencies" section, press the "+" button,
@@ -248,7 +258,7 @@
  
  To use it, call @link AEAudioUnitChannel::initWithComponentDescription:audioController:error: initWithComponentDescription:audioController:error: @endlink,
  passing in an `AudioComponentDescription` structure (you can use the utility function @link AEAudioComponentDescriptionMake @endlink for this),
- along with a reference to the ABAudioController instance, and optionally, a pointer to an NSError to be filled if the audio unit
+ along with a reference to the AEAudioController instance, and optionally, a pointer to an NSError to be filled if the audio unit
  creation failed.
  
  @code
@@ -396,7 +406,7 @@ self.filter = [AEBlockFilter filterWithBlock:^(AEAudioControllerFilterProducer p
  
  To use it, call @link AEAudioUnitFilter::initWithComponentDescription:audioController:error: initWithComponentDescription:audioController:error: @endlink,
  passing in an `AudioComponentDescription` structure (you can use the utility function @link AEAudioComponentDescriptionMake @endlink for this),
- along with a reference to the ABAudioController instance, and optionally, a pointer to an NSError to be filled if the audio unit
+ along with a reference to the AEAudioController instance, and optionally, a pointer to an NSError to be filled if the audio unit
  creation failed.
  
  @code
@@ -939,3 +949,7 @@ self.filter = [AEBlockFilter filterWithBlock:^(AEAudioControllerFilterProducer p
  
  
  */
+
+#ifdef __cplusplus
+}
+#endif
