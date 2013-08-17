@@ -47,7 +47,9 @@ extern NSString * kAERecorderErrorKey;
  *  See the sample app for a demonstration.
  */
 @interface AERecorder : NSObject <AEAudioReceiver>
-
+{
+    AEAudioController *audioController;
+}
 /*!
  * Determine whether AAC encoding is possible on this device
  */
@@ -121,8 +123,11 @@ void AERecorderStartRecording(AERecorder* recorder);
  * The path
  */
 @property (nonatomic, retain, readonly) NSString *path;
+
 @property (nonatomic, readonly) BOOL recording;
 @property (nonatomic, readonly) BOOL paused;
+
+@property (weak, nonatomic, readonly) AEAudioController *audioController;
 
 /*!
  * Current recorded time in seconds

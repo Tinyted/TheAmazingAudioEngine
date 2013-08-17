@@ -45,6 +45,7 @@ NSString * kAERecorderErrorKey = @"error";
 @synthesize mixer = _mixer, writer = _writer, currentTime = _currentTime;
 @synthesize recording = _recording;
 @synthesize paused = _paused;
+@synthesize audioController;
 
 @dynamic path;
 
@@ -52,7 +53,7 @@ NSString * kAERecorderErrorKey = @"error";
     return [AEAudioFileWriter AACEncodingAvailable];
 }
 
-- (id)initWithAudioController:(AEAudioController*)audioController {
+- (id)initWithAudioController:(AEAudioController*)audiocontroller {
     if ( !(self = [super init]) ) return nil;
     self.mixer = [[[AEMixerBuffer alloc] initWithClientFormat:audioController.audioDescription] autorelease];
     self.writer = [[[AEAudioFileWriter alloc] initWithAudioDescription:audioController.audioDescription] autorelease];
@@ -60,6 +61,8 @@ NSString * kAERecorderErrorKey = @"error";
         [_mixer setAudioDescription:*AEAudioControllerInputAudioDescription(audioController) forSource:AEAudioSourceInput];
     }
     _buffer = AEAllocateAndInitAudioBufferList(audioController.audioDescription, 0);
+    
+    audioController = audiocontroller;
     
     return self;
 }
