@@ -183,7 +183,10 @@ typedef struct __channel_t {
     BOOL             muted;
     AudioStreamBasicDescription audioDescription;
     callback_table_t callbacks;
+    AudioTimeStamp   timeStamp;
+    
     BOOL             setRenderNotification;
+    
     AEAudioController *audioController;
     ABOutputPort    *audiobusOutputPort;
     AEFloatConverter *audiobusFloatConverter;
@@ -437,7 +440,8 @@ static OSStatus channelAudioProducer(void *userInfo, AudioBufferList *audio, UIn
             memset(audio->mBuffers[i].mData, 0, audio->mBuffers[i].mDataByteSize);
         }
         
-        status = callback(channelObj, channel->audioController, &arg->inTimeStamp, *frames, audio);
+        status = callback(channelObj, channel->audioController, &channel->timeStamp, *frames, audio);
+        channel->timeStamp.mSampleTime += *frames;
         
     } else if ( channel->type == kChannelTypeGroup ) {
         AEChannelGroupRef group = (AEChannelGroupRef)channel->ptr;
@@ -449,10 +453,10 @@ static OSStatus channelAudioProducer(void *userInfo, AudioBufferList *audio, UIn
         if ( group->level_monitor_data.monitoringEnabled ) {
             performLevelMonitoring(&group->level_monitor_data, audio, *frames);
         }
-    }
         
-    // Advance the sample time, to make sure we continue to render if we're called again with the same arguments
-    arg->inTimeStamp.mSampleTime += *frames;
+        // Advance the sample time, to make sure we continue to render if we're called again with the same arguments
+        arg->inTimeStamp.mSampleTime += *frames;
+    }
     
     return status;
 }
@@ -473,6 +477,12 @@ static OSStatus renderCallback(void *inRefCon, AudioUnitRenderActionFlags *ioAct
     } else {
         // Adjust timestamp to factor in hardware output latency
         timestamp.mHostTime += AEAudioControllerOutputLatency(channel->audioController)*__secondsToHostTicks;
+    }
+    
+    if ( channel->timeStamp.mFlags == 0 ) {
+        channel->timeStamp = *inTimeStamp;
+    } else {
+        channel->timeStamp.mHostTime = inTimeStamp->mHostTime;
     }
     
     channel_producer_arg_t arg = {
@@ -974,6 +984,7 @@ static OSStatus topRenderNotifyCallback(void *inRefCon, AudioUnitRenderActionFla
         channelElement->pan         = [channel respondsToSelector:@selector(pan)] ? channel.pan : 0.0;
         channelElement->muted       = [channel respondsToSelector:@selector(channelIsMuted)] ? channel.channelIsMuted : NO;
         channelElement->audioDescription = [channel respondsToSelector:@selector(audioDescription)] && channel.audioDescription.mSampleRate ? channel.audioDescription : _audioDescription;
+        memset(&channelElement->timeStamp, 0, sizeof(channelElement->timeStamp));
         channelElement->audioController = self;
         
         group->channels[group->channelCount++] = channelElement;
