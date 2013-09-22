@@ -118,6 +118,10 @@ void AERecorderStartRecording(AERecorder* recorder);
  */
 - (void)pauseRecording;
 
+/*!
+ *  Discard the recording
+ */
+- (void)discardRecording;
 
 /*!
  * The path

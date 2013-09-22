@@ -96,6 +96,15 @@ void AERecorderStartRecording(AERecorder* THIS) {
     [_writer finishWriting];
 }
 
+- (void)discardRecording
+{
+    /* Insert mode code to discard recording */
+    
+    NSLog(@"WARNING NOT COMPLETE CODE AT-> AERecorder.m -(void)discardRecording");
+    
+    _recording = NO;
+}
+
 - (void)resumeRecording
 {
     if (!_recording && _paused)
