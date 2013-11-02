@@ -42,16 +42,17 @@
 @end
 
 @implementation AEAudioFilePlayer
-@synthesize url = _url, loop=_loop, volume=_volume, pan=_pan, channelIsPlaying=_channelIsPlaying, channelIsMuted=_channelIsMuted, removeUponFinish=_removeUponFinish, completionBlock = _completionBlock;
+@synthesize url = _url, loop=_loop, volume=_volume, pan=_pan, channelIsPlaying=_channelIsPlaying, channelIsMuted=_channelIsMuted, removeUponFinish=_removeUponFinish, completionBlock = _completionBlock, audioController = _audioController;
 @dynamic duration, currentTime;
 
-+ (id)audioFilePlayerWithURL:(NSURL*)url audioController:(AEAudioController *)audioController error:(NSError **)error {
++ (id)audioFilePlayerWithURL:(NSURL*)url audioController:(AEAudioController *)audiocontroller error:(NSError **)error {
     
     AEAudioFilePlayer *player = [[[AEAudioFilePlayer alloc] init] autorelease];
     player->_volume = 1.0;
     player->_channelIsPlaying = YES;
-    player->_audioDescription = audioController.audioDescription;
+    player->_audioDescription = audiocontroller.audioDescription;
     player.url = url;
+    player.audioController = audiocontroller;
     
     AEAudioFileLoaderOperation *operation = [[AEAudioFileLoaderOperation alloc] initWithFileURL:url targetAudioDescription:player->_audioDescription];
     [operation start];
@@ -96,7 +97,29 @@
     _playhead = (int32_t)((currentTime / [self duration]) * _lengthInFrames) % _lengthInFrames;
 }
 
+-(void)pausePlayback
+{
+    _channelIsPlaying = NO;
+}
+
+-(void)stopPlayback
+{
+    NSLog(@"AEAudioFilePlayer:%@ -stopPlayBack",self);
+    [self pausePlayback];
+
+    if (self->_removeUponFinish)
+    {
+        [self.audioController removeChannels:[NSArray arrayWithObject:self]];
+    }
+    if (self.completionBlock) self.completionBlock();
+    
+    self->_playhead = 0;
+
+    NSLog(@"AEAudioFilePlayer:%@ -stopPlayBack Finished",self);
+}
+
 static void notifyPlaybackStopped(AEAudioController *audioController, void *userInfo, int length) {
+    NSLog(@"notifyPlaybackStopped");
     AEAudioFilePlayer *THIS = *(AEAudioFilePlayer**)userInfo;
     THIS.channelIsPlaying = NO;
 
