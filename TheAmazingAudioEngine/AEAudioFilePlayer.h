@@ -42,6 +42,7 @@ extern "C" {
 
 -(void)pausePlayback;
 -(void)stopPlayback;
+-(void)resumePlayback;
 
 /*!
  * Create a new player instance

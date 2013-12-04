@@ -102,6 +102,11 @@
     _channelIsPlaying = NO;
 }
 
+-(void)resumePlayback
+{
+    _channelIsPlaying = YES;
+}
+
 -(void)stopPlayback
 {
     NSLog(@"AEAudioFilePlayer:%@ -stopPlayBack",self);
