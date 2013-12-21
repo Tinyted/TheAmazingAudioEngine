@@ -100,9 +100,19 @@ void AERecorderStartRecording(AERecorder* THIS) {
 {
     /* Insert mode code to discard recording */
     
-    NSLog(@"WARNING NOT COMPLETE CODE AT-> AERecorder.m -(void)discardRecording");
-    
     _recording = NO;
+    [_writer finishWriting];
+    NSError *error;
+    BOOL success = [[NSFileManager defaultManager] removeItemAtPath:[self path] error: &error];
+
+    if (!success)
+    {
+        NSLog(@"Error in discarding recording:%@| with Error:%@",[self path],error);
+    }
+    else
+    {
+        NSLog(@"Succesfully discarded recording:%@",[self path]);
+    }
 }
 
 - (void)resumeRecording
