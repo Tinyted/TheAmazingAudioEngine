@@ -56,6 +56,7 @@ extern "C" {
 
 @property (nonatomic, retain, readonly) NSURL *url;         //!< Original media URL
 @property (nonatomic, readonly) NSTimeInterval duration;    //!< Length of audio, in seconds
+@property (nonatomic, assign) double forceEnd;              //!< Forced duration
 @property (nonatomic, assign) NSTimeInterval currentTime;   //!< Current playback position, in seconds
 @property (nonatomic, readwrite) BOOL loop;                 //!< Whether to loop this track
 @property (nonatomic, readwrite) float volume;              //!< Track volume

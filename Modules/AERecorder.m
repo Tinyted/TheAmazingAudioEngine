@@ -167,7 +167,7 @@ static void audioCallback(id                        receiver,
         THIS->_buffer->mBuffers[i].mData = NULL;
         THIS->_buffer->mBuffers[i].mDataByteSize = 0;
     }
-    
+
     THIS->_currentTime += AEConvertFramesToSeconds(audioController, frames);
     
     AEMixerBufferDequeue(THIS->_mixer, THIS->_buffer, &bufferLength, NULL);

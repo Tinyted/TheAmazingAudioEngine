@@ -37,6 +37,7 @@
     UInt32                        _lengthInFrames;
     AudioStreamBasicDescription   _audioDescription;
     volatile int32_t              _playhead;
+    double                        forceEnd;
 }
 @property (nonatomic, retain, readwrite) NSURL *url;
 @end
@@ -44,6 +45,8 @@
 @implementation AEAudioFilePlayer
 @synthesize url = _url, loop=_loop, volume=_volume, pan=_pan, channelIsPlaying=_channelIsPlaying, channelIsMuted=_channelIsMuted, removeUponFinish=_removeUponFinish, completionBlock = _completionBlock, audioController = _audioController;
 @dynamic duration, currentTime;
+
+@synthesize forceEnd;
 
 + (id)audioFilePlayerWithURL:(NSURL*)url audioController:(AEAudioController *)audiocontroller error:(NSError **)error {
     
@@ -69,6 +72,8 @@
     player->_lengthInFrames = operation.lengthInFrames;
     
     [operation release];
+    
+    player->forceEnd = 0;
     
     return player;
 }
@@ -96,6 +101,7 @@
 -(void)setCurrentTime:(NSTimeInterval)currentTime {
     _playhead = (int32_t)((currentTime / [self duration]) * _lengthInFrames) % _lengthInFrames;
 }
+
 
 -(void)pausePlayback
 {
@@ -185,6 +191,21 @@ static OSStatus renderCallback(AEAudioFilePlayer *THIS, AEAudioController *audio
                 AEAudioControllerSendAsynchronousMessageToMainThread(audioController, notifyPlaybackStopped, &THIS, sizeof(AEAudioFilePlayer*));
                 THIS->_channelIsPlaying = NO;
                 break;
+            }
+        }
+        
+        if (THIS->forceEnd != 0)
+        {
+            if (playhead >= THIS->forceEnd*(double)THIS->_audioDescription.mSampleRate) /* Forcefully end recording */
+            {
+                if ( THIS->_loop) {
+                    playhead = 0;
+                } else {
+                    // Notify main thread that playback has finished
+                    AEAudioControllerSendAsynchronousMessageToMainThread(audioController, notifyPlaybackStopped, &THIS, sizeof(AEAudioFilePlayer*));
+                    THIS->_channelIsPlaying = NO;
+                    break;
+                }
             }
         }
     }
