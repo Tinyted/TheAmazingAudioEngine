@@ -43,7 +43,8 @@
 @end
 
 @implementation AEAudioFilePlayer
-@synthesize url = _url, loop=_loop, volume=_volume, pan=_pan, channelIsPlaying=_channelIsPlaying, channelIsMuted=_channelIsMuted, removeUponFinish=_removeUponFinish, completionBlock = _completionBlock, audioController = _audioController;
+@synthesize url = _url, loop=_loop, volume=_volume, pan=_pan, channelIsPlaying=_channelIsPlaying, channelIsMuted=_channelIsMuted, removeUponFinish=_removeUponFinish, completionBlock = _completionBlock, startLoopBlock = _startLoopBlock;
+@synthesize audioController = _audioController;
 @dynamic duration, currentTime;
 
 @synthesize forceEnd;
@@ -129,6 +130,12 @@
     NSLog(@"AEAudioFilePlayer:%@ -stopPlayBack Finished",self);
 }
 
+static void notifyLoopRestart(AEAudioController *audioController, void *userInfo, int length) {
+    AEAudioFilePlayer *THIS = *(AEAudioFilePlayer**)userInfo;
+    
+    if ( THIS.startLoopBlock ) THIS.startLoopBlock();
+}
+
 static void notifyPlaybackStopped(AEAudioController *audioController, void *userInfo, int length) {
     NSLog(@"notifyPlaybackStopped");
     AEAudioFilePlayer *THIS = *(AEAudioFilePlayer**)userInfo;
@@ -186,6 +193,10 @@ static OSStatus renderCallback(AEAudioFilePlayer *THIS, AEAudioController *audio
             // Reached the end of the audio - either loop, or stop
             if ( THIS->_loop ) {
                 playhead = 0;
+                if ( THIS->_startLoopBlock ) {
+                    // Notify main thread that the loop playback has restarted
+                    AEAudioControllerSendAsynchronousMessageToMainThread(audioController, notifyLoopRestart, &THIS, sizeof(AEAudioFilePlayer*));
+                }
             } else {
                 // Notify main thread that playback has finished
                 AEAudioControllerSendAsynchronousMessageToMainThread(audioController, notifyPlaybackStopped, &THIS, sizeof(AEAudioFilePlayer*));
