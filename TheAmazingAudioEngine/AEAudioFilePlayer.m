@@ -44,7 +44,7 @@
 
 @implementation AEAudioFilePlayer
 @synthesize url = _url, loop=_loop, volume=_volume, pan=_pan, channelIsPlaying=_channelIsPlaying, channelIsMuted=_channelIsMuted, removeUponFinish=_removeUponFinish, completionBlock = _completionBlock, startLoopBlock = _startLoopBlock;
-@synthesize audioController = _audioController;
+@synthesize audioController = _audioController, audioSegmentCount = _audioSegmentCount, audioSegments = _audioSegments, currentAudioSegment = _currentAudioSegment, segmentBlock = _segmentBlock;
 @dynamic duration, currentTime;
 
 @synthesize forceEnd;
@@ -101,6 +101,7 @@
 
 -(void)setCurrentTime:(NSTimeInterval)currentTime {
     _playhead = (int32_t)((currentTime / [self duration]) * _lengthInFrames) % _lengthInFrames;
+    NSLog(@"setCurrentTime:%i",_playhead);
 }
 
 
@@ -128,6 +129,13 @@
     self->_playhead = 0;
 
     NSLog(@"AEAudioFilePlayer:%@ -stopPlayBack Finished",self);
+}
+
+static void notifyNextSegment(AEAudioController *audioController, void *userInfo, int length)
+{
+    AEAudioFilePlayer *THIS = *(AEAudioFilePlayer**)userInfo;
+    
+    if (THIS.segmentBlock) THIS.segmentBlock();
 }
 
 static void notifyLoopRestart(AEAudioController *audioController, void *userInfo, int length) {
@@ -211,6 +219,16 @@ static OSStatus renderCallback(AEAudioFilePlayer *THIS, AEAudioController *audio
             {
                 if ( THIS->_loop) {
                     playhead = 0;
+                } else if (THIS->_audioSegmentCount > 0 && THIS->_currentAudioSegment < THIS->_audioSegmentCount)
+                {
+                    THIS->_currentAudioSegment++;
+                    NSLog(@"Next segment current:%i",THIS->_currentAudioSegment);
+                    //Switch playhead to next starting point
+                    AudioSegment segment = THIS->_audioSegments[THIS->_currentAudioSegment];
+                    playhead = (int32_t)((segment.startTime /  ((double)THIS->_lengthInFrames / (double)THIS->_audioDescription.mSampleRate)) * THIS->_lengthInFrames) % THIS->_lengthInFrames;
+                    THIS->forceEnd = segment.endTime;
+                    
+                    AEAudioControllerSendAsynchronousMessageToMainThread(audioController, notifyNextSegment, &THIS, sizeof(AEAudioFilePlayer*));
                 } else {
                     // Notify main thread that playback has finished
                     AEAudioControllerSendAsynchronousMessageToMainThread(audioController, notifyPlaybackStopped, &THIS, sizeof(AEAudioFilePlayer*));

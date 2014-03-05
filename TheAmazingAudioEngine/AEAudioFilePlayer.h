@@ -30,6 +30,7 @@ extern "C" {
 #import <Foundation/Foundation.h>
 #import "AEAudioController.h"
 
+    
 /*!
  * Audio file player
  *
@@ -39,6 +40,12 @@ extern "C" {
  *  To use, create an instance, then add it to the audio controller.
  */
 @interface AEAudioFilePlayer : NSObject <AEAudioPlayable>
+
+typedef struct AudioSegment
+{
+    double startTime;
+    double endTime;
+}AudioSegment;
 
 -(void)pausePlayback;
 -(void)stopPlayback;
@@ -57,6 +64,9 @@ extern "C" {
 @property (nonatomic, retain, readonly) NSURL *url;         //!< Original media URL
 @property (nonatomic, readonly) NSTimeInterval duration;    //!< Length of audio, in seconds
 @property (nonatomic, assign) double forceEnd;              //!< Forced duration
+@property (nonatomic, assign) AudioSegment *audioSegments;  //!< Array of audioSegments
+@property (nonatomic, assign) uint currentAudioSegment;     //!< Current AudioSegment
+@property (nonatomic, assign) uint audioSegmentCount;       //!< Count of audioSegments
 @property (nonatomic, assign) NSTimeInterval currentTime;   //!< Current playback position, in seconds
 @property (nonatomic, readwrite) BOOL loop;                 //!< Whether to loop this track
 @property (nonatomic, readwrite) float volume;              //!< Track volume
@@ -66,6 +76,7 @@ extern "C" {
 @property (nonatomic, readwrite) BOOL removeUponFinish;     //!< Whether the track automatically removes itself from the audio controller after playback completes
 @property (nonatomic, copy) void(^completionBlock)();       //!< A block to be called when playback finishes
 @property (nonatomic, copy) void(^startLoopBlock)();        //!< A block to be called when the loop restarts in loop mode
+@property (nonatomic, copy) void(^segmentBlock)();          //!< A block to be called when a new segment is started
 @property (nonatomic, unsafe_unretained) AEAudioController *audioController;
 
 @end
